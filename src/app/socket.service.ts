@@ -9,7 +9,7 @@ export class SocketService {
   private socket: Socket;
 
   constructor() {
-    this.socket = io('http://localhost:3000'); // Remplacez par l'URL de votre serveur Socket.IO
+    this.socket = io('http://localhost:5001'); // Remplacez par l'URL de votre serveur Socket.IO
   }
 
   listen(eventName: string): Observable<any> {
@@ -18,9 +18,5 @@ export class SocketService {
         subscriber.next(data);
       });
     });
-  }
-
-  emit(eventName: string, data: any): void {
-    this.socket.emit(eventName, data);
   }
 }

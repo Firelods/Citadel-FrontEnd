@@ -1,0 +1,18 @@
+<div id="logs-panel">
+  <div id="logs-panel-header">
+    <h2>Logs</h2>
+  </div>
+  <div>
+    <div class="logs-panel-chat" *ngFor="let message of messages; let i = index;">
+      <p class="logs-panel-message-left" *ngIf="i % 2 == 0;">
+        {{message}}
+      </p>
+      <p class="logs-panel-message-right" *ngIf="i % 2 != 0;">
+        {{message}}
+      </p>
+    </div>
+  </div>
+  <div id="logs-panel-clear">
+    <button (click)="clear()">Clear</button>
+  </div>
+</div>
