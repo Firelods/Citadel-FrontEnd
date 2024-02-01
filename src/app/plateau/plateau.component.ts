@@ -11,6 +11,7 @@ import { Player } from '../player';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader';
 import { TextureLoader, SpriteMaterial, Sprite } from 'three';
+import { PlayerService } from '../player.service';
 
 @Component({
   selector: 'app-plateau',
@@ -28,67 +29,14 @@ export class PlateauComponent implements AfterViewInit {
   private cube!: THREE.Mesh;
   private controls!: OrbitControls;
   private textureLoader = new THREE.TextureLoader();
+  raycaster = new THREE.Raycaster();
+  mouse = new THREE.Vector2();
   players: Player[];
-  constructor() {
-    this.players = [
-      {
-        id: 'player1',
-        name: 'Joueur 1',
-        citadel: [
-          { cost: 1 },
-          { cost: 2 },
-          { cost: 3 },
-          { cost: 4 },
-          { cost: 5 },
-          { cost: 6 },
-          { cost: 7 },
-          { cost: 8 },
-        ],
-      },
-      {
-        id: 'player2',
-        name: 'Joueur 2',
-        citadel: [
-          { cost: 1 },
-          { cost: 2 },
-          { cost: 3 },
-          { cost: 4 },
-          { cost: 5 },
-          { cost: 6 },
-        ],
-      },
-      {
-        id: 'player2',
-        name: 'Joueur 2',
-        citadel: [
-          { cost: 1 },
-          { cost: 2 },
-          { cost: 3 },
-          { cost: 4 },
-          { cost: 5 },
-          { cost: 6 },
-        ],
-      },
-      {
-        id: 'player2',
-        name: 'Joueur 2',
-        citadel: [
-          { cost: 1 },
-          { cost: 2 },
-          { cost: 3 },
-          { cost: 4 },
-          { cost: 5 },
-          { cost: 6 },
-        ],
-      },
-      {
-        id: 'player2',
-        name: 'Joueur 2',
-        citadel: [{ cost: 1 }, { cost: 2 }, { cost: 3 }],
-      },
-      { id: 'player2', name: 'Joueur 2', citadel: [{ cost: 1 }] },
-      // Ajoutez d'autres joueurs selon le besoin
-    ];
+  targetPosition = new THREE.Vector3();
+  progress = 0; // Progression de l'animation de 0 (début) à 1 (fin)
+
+  constructor(playerService: PlayerService) {
+    this.players = playerService.players;
   }
 
   ngOnInit(): void {}
@@ -98,6 +46,8 @@ export class PlateauComponent implements AfterViewInit {
     this.createDistricts();
     this.animate();
     this.createQuestionMarks();
+    window.addEventListener('click', this.onMouseClick);
+    window.addEventListener('mousemove', this.onHover);
   }
 
   initTHREE(): void {
@@ -115,7 +65,6 @@ export class PlateauComponent implements AfterViewInit {
     this.camera.position.y = 10; // Monter la caméra pour qu'elle puisse voir le sol
     this.camera.position.z = 5;
     this.camera.lookAt(new THREE.Vector3(0, 0, 0)); // Orienter la caméra vers le centre de la scène
-    // Initialiser OrbitControls
 
     // Renderer
     this.renderer = new THREE.WebGLRenderer();
@@ -154,6 +103,7 @@ export class PlateauComponent implements AfterViewInit {
     this.scene.add(circle);
 
     this.scene.background = new THREE.Color(0xd5d5d5);
+    // Initialiser OrbitControls
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
 
     // Configurer les contrôles (optionnel)
@@ -161,6 +111,10 @@ export class PlateauComponent implements AfterViewInit {
     this.controls.maxDistance = 20;
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.05;
+    const axesHelper = new THREE.AxesHelper(100);
+    this.scene.add(axesHelper);
+    // const helper = new THREE.CameraHelper(this.camera);
+    // this.scene.add(helper);
     this.renderer.render(this.scene, this.camera);
   }
 
@@ -194,6 +148,15 @@ export class PlateauComponent implements AfterViewInit {
       const grid = new Array(gridSize)
         .fill(null)
         .map(() => new Array(gridSize).fill(false));
+
+      // Positionner le groupe de chaque joueur
+      const groupAngle = (playerIndex / this.players.length) * Math.PI * 2;
+      const groupRadius = 7; // Rayon pour la disposition des groupes de joueurs
+      playerGroup.position.x = Math.cos(groupAngle) * groupRadius;
+      playerGroup.position.z = Math.sin(groupAngle) * groupRadius;
+      let playerPosition: THREE.Vector3 = new THREE.Vector3();
+      playerGroup.getWorldPosition(playerPosition);
+      player.positionOnBoard = playerPosition;
       for (let i = 0; i < player.citadel.length; i++) {
         // Choix aléatoire de la géométrie
         const sizeMultiplierByCost = (player.citadel[i].cost * 3) / 8; // Pour que les formes les plus chères soient plus grosses
@@ -226,36 +189,34 @@ export class PlateauComponent implements AfterViewInit {
             placed = true;
           }
         }
+        let districtPosition: THREE.Vector3 = new THREE.Vector3();
+        district.getWorldPosition(districtPosition);
+        player.citadel[i].placeOnBoard = districtPosition;
         playerGroup.add(district);
       }
 
-      // Positionner le groupe de chaque joueur
-      const groupAngle = (playerIndex / this.players.length) * Math.PI * 2;
-      const groupRadius = 7; // Rayon pour la disposition des groupes de joueurs
-      playerGroup.position.x = Math.cos(groupAngle) * groupRadius;
-      playerGroup.position.z = Math.sin(groupAngle) * groupRadius;
-
       this.scene.add(playerGroup);
     });
+    console.log(this.players);
   }
 
   createQuestionMarks(): void {
     const questionTexture = this.textureLoader.load(
       '../../assets/interrog.png'
-    ); // Remplacez par le chemin de votre texture
+    );
     console.log(questionTexture);
 
     this.players.forEach((player, playerIndex) => {
       const material = new SpriteMaterial({ map: questionTexture });
       const questionSprite = new Sprite(material);
 
-      // Positionner le texte au-dessus du groupe de carrés
+      // Positionner le sprite au-dessus du groupe de carrés
       const groupAngle = (playerIndex / this.players.length) * Math.PI * 2;
       const groupRadius = 7;
       questionSprite.position.x = Math.cos(groupAngle) * groupRadius;
       questionSprite.position.z = Math.sin(groupAngle) * groupRadius;
       questionSprite.position.y = 2; // Ajuster la hauteur
-      questionSprite.scale.set(2, 2, 2); // Ajuster la taille selon les besoins
+      // questionSprite.scale.set(2, 3, 2); // Ajuster la taille selon les besoins
 
       this.scene.add(questionSprite);
     });
@@ -266,5 +227,121 @@ export class PlateauComponent implements AfterViewInit {
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.camera.aspect = window.innerWidth / window.innerHeight;
     this.camera.updateProjectionMatrix();
+  }
+
+  onMouseClick = (event: MouseEvent): void => {
+    this.progress = 1; // stop the animation zoom
+    // Calculer la position de la souris en coordonnées normalisées (-1 à +1)
+    this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    this.mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+    // Mettre à jour le raycaster avec la position de la caméra et la position de la souris
+    this.raycaster.setFromCamera(this.mouse, this.camera);
+
+    // Calculer les objets qui intersectent le rayon lancé
+    const intersects = this.raycaster.intersectObjects(this.scene.children);
+
+    if (intersects.length > 0) {
+      // L'objet cliqué est intersects[0].object
+      const object = intersects[0].object;
+      // Si l'objet cliqué est un village, zoomer dessus
+      let villagePosition = this.isAVillage(
+        object.position.x,
+        object.position.z
+      );
+      if (villagePosition) {
+        this.zoomOnVillage(villagePosition);
+      }
+    }
+  };
+
+  /**
+   * Change the cursor when the mouse is on a village
+   * @param event  the mouse event
+   */
+  onHover = (event: MouseEvent): void => {
+    this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    this.mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+    // Mettre à jour le raycaster avec la position de la caméra et la position de la souris
+    this.raycaster.setFromCamera(this.mouse, this.camera);
+
+    // Calculer les objets qui intersectent le rayon lancé
+    const intersects = this.raycaster.intersectObjects(this.scene.children);
+
+    if (intersects.length > 0) {
+      // L'objet cliqué est intersects[0].object
+      const object = intersects[0].object;
+      // Si l'objet cliqué est un village, zoomer dessus
+      let villagePosition = this.isAVillage(
+        object.position.x,
+        object.position.z
+      );
+      if (villagePosition) {
+        document.body.style.cursor = 'pointer';
+      } else {
+        document.body.style.cursor = 'default';
+      }
+    }
+  };
+
+  /**
+   *  Zoom on a village
+   * @param targetPosition the position of the village to zoom on
+   */
+  zoomOnVillage(targetPosition: THREE.Vector3): void {
+    let cameraLookAtPosition = new THREE.Vector3();
+    cameraLookAtPosition.copy(targetPosition);
+    this.targetPosition.set(
+      targetPosition.x,
+      targetPosition.y + 3,
+      targetPosition.z + 3 // To see the village from above and behind
+    );
+
+    // Reset the progress of the animation
+    this.progress = 0;
+    this.camera.zoom = 0;
+
+    this.animateCamera();
+    this.controls.target.set(
+      targetPosition.x,
+      targetPosition.y,
+      targetPosition.z
+    );
+    this.camera.lookAt(cameraLookAtPosition);
+  }
+  animateCamera = (): void => {
+    if (this.progress < 1) {
+      this.progress += 0.001; // Ajustez cette valeur pour contrôler la vitesse de l'animation
+      // Interpoler la position de la caméra
+      this.camera.position.lerpVectors(
+        this.camera.position,
+        this.targetPosition,
+        this.progress
+      );
+      requestAnimationFrame(this.animateCamera);
+    }
+  };
+
+  /**
+   * Approximate the position of the village on the board using positioOnBoard in player
+   * @param x  x of the position on the board
+   * @param z  z of the position on the board
+   * @returns  the position of the village on the board, or undefined if there is no village at this position
+   */
+  isAVillage(x: number, z: number): THREE.Vector3 | undefined {
+    const villageSize = 1;
+    const villagePosition = this.players.find(
+      (player) =>
+        player.positionOnBoard &&
+        player.positionOnBoard.x - villageSize / 2 < x &&
+        player.positionOnBoard.x + villageSize / 2 > x &&
+        player.positionOnBoard.z - villageSize / 2 < z &&
+        player.positionOnBoard.z + villageSize / 2 > z
+    )?.positionOnBoard;
+    if (villagePosition) {
+      return new THREE.Vector3(villagePosition.x, 0, villagePosition.z);
+    }
+    return undefined;
   }
 }
