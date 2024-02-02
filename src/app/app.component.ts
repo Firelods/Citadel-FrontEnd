@@ -12,8 +12,9 @@ import { SocketService } from './socket.service';
 })
 export class AppComponent {
   title = 'citadel-front';
+  socketService?:SocketService
 
   connect(){
-    let socketService:SocketService = new SocketService();
+    this.socketService = new SocketService();
   }
 }
