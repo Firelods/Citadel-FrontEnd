@@ -2,6 +2,6 @@ import { Player } from "../player";
 
 export interface PlayerGetBonusDTO {
   player: Player;
-  bonusPoint: number;
+  bonusPoints: number;
   bonusName: string;
 }
