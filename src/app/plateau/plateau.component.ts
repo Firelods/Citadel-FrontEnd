@@ -8,15 +8,14 @@ import {
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { Player } from '../player';
-import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
-import { FontLoader } from 'three/examples/jsm/loaders/FontLoader';
-import { TextureLoader, SpriteMaterial, Sprite } from 'three';
+import { SpriteMaterial, Sprite } from 'three';
 import { PlayerService } from '../player.service';
+import { SidePanelComponent } from '../side-panel/side-panel.component';
 
 @Component({
   selector: 'app-plateau',
   standalone: true,
-  imports: [],
+  imports: [SidePanelComponent],
   templateUrl: './plateau.component.html',
   styleUrl: './plateau.component.scss',
 })
@@ -26,7 +25,6 @@ export class PlateauComponent implements AfterViewInit {
   private scene!: THREE.Scene;
   private camera!: THREE.PerspectiveCamera;
   private renderer!: THREE.WebGLRenderer;
-  private cube!: THREE.Mesh;
   private controls!: OrbitControls;
   private textureLoader = new THREE.TextureLoader();
   raycaster = new THREE.Raycaster();
@@ -57,7 +55,7 @@ export class PlateauComponent implements AfterViewInit {
     // Camera
     this.camera = new THREE.PerspectiveCamera(
       75,
-      window.innerWidth / window.innerHeight,
+      window.innerWidth / 2 / window.innerHeight,
       0.1,
       1000
     );
@@ -68,7 +66,7 @@ export class PlateauComponent implements AfterViewInit {
 
     // Renderer
     this.renderer = new THREE.WebGLRenderer();
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.renderer.setSize(window.innerWidth / 2, window.innerHeight);
     this.containerRef.nativeElement.appendChild(this.renderer.domElement);
     const solTexture = this.textureLoader.load('../../assets/sol.jpg');
     solTexture.wrapS = THREE.RepeatWrapping;
@@ -224,15 +222,15 @@ export class PlateauComponent implements AfterViewInit {
 
   @HostListener('window:resize', ['$event'])
   onWindowResize(event: Event): void {
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
-    this.camera.aspect = window.innerWidth / window.innerHeight;
+    this.renderer.setSize(window.innerWidth / 2, window.innerHeight);
+    this.camera.aspect = window.innerWidth / 2 / window.innerHeight;
     this.camera.updateProjectionMatrix();
   }
 
   onMouseClick = (event: MouseEvent): void => {
     this.progress = 1; // stop the animation zoom
     // Calculer la position de la souris en coordonnées normalisées (-1 à +1)
-    this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    this.mouse.x = event.clientX / (window.innerWidth / 4) - 1;
     this.mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
     // Mettre à jour le raycaster avec la position de la caméra et la position de la souris
@@ -260,7 +258,7 @@ export class PlateauComponent implements AfterViewInit {
    * @param event  the mouse event
    */
   onHover = (event: MouseEvent): void => {
-    this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    this.mouse.x = event.clientX / (window.innerWidth / 4) - 1;
     this.mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
     // Mettre à jour le raycaster avec la position de la caméra et la position de la souris
