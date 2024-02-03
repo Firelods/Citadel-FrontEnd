@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 import { PlateauComponent } from './plateau/plateau.component';
-import {LogsPanelComponent} from "./logs-panel/logs-panel.component";
+import { LogsPanelComponent } from './side-panel/logs-panel/logs-panel.component';
 
 export const routes: Routes = [
   {
@@ -15,5 +15,5 @@ export const routes: Routes = [
   {
     path: 'logs',
     component: LogsPanelComponent,
-  }
+  },
 ];
