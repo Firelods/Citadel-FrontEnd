@@ -191,7 +191,7 @@ export class PlateauComponent implements AfterViewInit {
         }
         let districtPosition: THREE.Vector3 = new THREE.Vector3();
         district.getWorldPosition(districtPosition);
-        player.citadel[i].placeOnBoard = districtPosition;
+        player.citadel[i].positionOnBoard = districtPosition;
         playerGroup.add(district);
       }
 

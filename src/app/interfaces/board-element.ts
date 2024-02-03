@@ -1,3 +1,3 @@
 export interface BoardElement {
-  placeOnBoard?: THREE.Vector3;
+  positionOnBoard?: THREE.Vector3;
 }
