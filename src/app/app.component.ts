@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
-import { SocketService } from './socket.service';
+import { SocketService } from './services/socket.service';
 
 @Component({
   selector: 'app-root',

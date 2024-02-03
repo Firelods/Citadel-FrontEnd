@@ -7,11 +7,11 @@ import {
 } from '@angular/core';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { Player } from '../player';
+import { Player } from '../interfaces/player';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader';
 import { TextureLoader, SpriteMaterial, Sprite } from 'three';
-import { PlayerService } from '../player.service';
+import { PlayerService } from '../services/player.service';
 
 @Component({
   selector: 'app-plateau',
