@@ -1,0 +1,22 @@
+.hand,
+.citadel {
+  display: flex;
+  overflow: auto;
+  width: 100%;
+  height: max-content;
+}
+.playerInfos {
+  max-height: 100%;
+  overflow: auto;
+  padding: 1em;
+  text-align: center;
+
+  > p {
+    font-size: 1.2em;
+    width: fit-content;
+  }
+}
+
+.district img {
+  width: 5em;
+}

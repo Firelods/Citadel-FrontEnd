@@ -8,13 +8,8 @@ import { SocketService } from './services/socket.service';
   standalone: true,
   imports: [CommonModule, RouterOutlet],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.scss'
+  styleUrl: './app.component.scss',
 })
 export class AppComponent {
   title = 'citadel-front';
-  socketService?:SocketService
-
-  connect(){
-    this.socketService = new SocketService();
-  }
 }

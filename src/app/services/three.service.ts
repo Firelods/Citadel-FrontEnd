@@ -14,13 +14,12 @@ import {
 import { PlayerService } from './player.service';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ThreeService {
   private scene!: THREE.Scene;
   private camera!: THREE.PerspectiveCamera;
   private renderer!: THREE.WebGLRenderer;
-  private cube!: THREE.Mesh;
   private controls!: OrbitControls;
   private textureLoader = new THREE.TextureLoader();
   raycaster = new THREE.Raycaster();
@@ -30,7 +29,7 @@ export class ThreeService {
 
   private playerService: PlayerService;
 
-  constructor(playerService:PlayerService) {
+  constructor(playerService: PlayerService) {
     this.playerService = playerService;
   }
 
@@ -43,16 +42,14 @@ export class ThreeService {
     window.addEventListener('mousemove', this.onHover);
   }
 
-
-
-  initTHREE(container:ElementRef): void {
+  initTHREE(container: ElementRef): void {
     // Scene
     this.scene = new THREE.Scene();
 
     // Camera
     this.camera = new THREE.PerspectiveCamera(
       75,
-      window.innerWidth / window.innerHeight,
+      window.innerWidth / 2 / window.innerHeight,
       0.1,
       1000
     );
@@ -63,7 +60,7 @@ export class ThreeService {
 
     // Renderer
     this.renderer = new THREE.WebGLRenderer();
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.renderer.setSize(window.innerWidth / 2, window.innerHeight);
     container.nativeElement.appendChild(this.renderer.domElement);
     const solTexture = this.textureLoader.load('../../assets/sol.jpg');
     solTexture.wrapS = THREE.RepeatWrapping;
@@ -124,14 +121,12 @@ export class ThreeService {
     this.renderer.render(this.scene, this.camera);
   };
 
-
   updateCamera() {
     if (this.camera.position.y < 1) {
       // 1 est la hauteur minimale au-dessus du sol
       this.camera.position.y = 1;
     }
   }
-
 
   createDistricts(): void {
     const colors = [0xff0000, 0x00ff00, 0x0000ff, 0xffff00]; // Couleurs pour chaque joueur
@@ -159,7 +154,7 @@ export class ThreeService {
       player.positionOnBoard = playerPosition;
       for (let i = 0; i < player.citadel.length; i++) {
         // Choix aléatoire de la géométrie
-        const sizeMultiplierByCost = (player.citadel[i].cost * 3) / 8; // Pour que les formes les plus chères soient plus grosses
+        const sizeMultiplierByCost = (player.citadel[i].district.cost * 3) / 8; // Pour que les formes les plus chères soient plus grosses
         let geometry = new THREE.BoxGeometry(
           0.2 * sizeMultiplierByCost,
           0.2 * sizeMultiplierByCost,
@@ -191,7 +186,7 @@ export class ThreeService {
         }
         let districtPosition: THREE.Vector3 = new THREE.Vector3();
         district.getWorldPosition(districtPosition);
-        player.citadel[i].positionOnBoard = districtPosition;
+        player.citadel[i].district.positionOnBoard = districtPosition;
         playerGroup.add(district);
       }
 
@@ -224,19 +219,17 @@ export class ThreeService {
     });
   }
 
-
-
   @HostListener('window:resize', ['$event'])
   onWindowResize(event: Event): void {
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
-    this.camera.aspect = window.innerWidth / window.innerHeight;
+    this.renderer.setSize(window.innerWidth / 2, window.innerHeight);
+    this.camera.aspect = window.innerWidth / 2 / window.innerHeight;
     this.camera.updateProjectionMatrix();
   }
 
   onMouseClick = (event: MouseEvent): void => {
     this.progress = 1; // stop the animation zoom
     // Calculer la position de la souris en coordonnées normalisées (-1 à +1)
-    this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    this.mouse.x = event.clientX / (window.innerWidth / 4) - 1;
     this.mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
     // Mettre à jour le raycaster avec la position de la caméra et la position de la souris
@@ -255,16 +248,17 @@ export class ThreeService {
       );
       if (villagePosition) {
         this.zoomOnVillage(villagePosition);
+        this.playerService.setFocusedPlayer(villagePosition);
       }
     }
-  }
+  };
 
   /**
    * Change the cursor when the mouse is on a village
    * @param event  the mouse event
    */
   onHover = (event: MouseEvent): void => {
-    this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    this.mouse.x = event.clientX / (window.innerWidth / 4) - 1;
     this.mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
     // Mettre à jour le raycaster avec la position de la caméra et la position de la souris
@@ -315,8 +309,6 @@ export class ThreeService {
     this.camera.lookAt(cameraLookAtPosition);
   }
 
-
-
   animateCamera = (): void => {
     if (this.progress < 1) {
       this.progress += 0.001; // Ajustez cette valeur pour contrôler la vitesse de l'animation
@@ -338,14 +330,16 @@ export class ThreeService {
    */
   isAVillage(x: number, z: number): THREE.Vector3 | undefined {
     const villageSize = 1;
-    const villagePosition = this.playerService.getPlayersAsList().find(
-      (player) =>
-        player.positionOnBoard &&
-        player.positionOnBoard.x - villageSize / 2 < x &&
-        player.positionOnBoard.x + villageSize / 2 > x &&
-        player.positionOnBoard.z - villageSize / 2 < z &&
-        player.positionOnBoard.z + villageSize / 2 > z
-    )?.positionOnBoard;
+    const villagePosition = this.playerService
+      .getPlayersAsList()
+      .find(
+        (player) =>
+          player.positionOnBoard &&
+          player.positionOnBoard.x - villageSize / 2 < x &&
+          player.positionOnBoard.x + villageSize / 2 > x &&
+          player.positionOnBoard.z - villageSize / 2 < z &&
+          player.positionOnBoard.z + villageSize / 2 > z
+      )?.positionOnBoard;
     if (villagePosition) {
       return new THREE.Vector3(villagePosition.x, 0, villagePosition.z);
     }

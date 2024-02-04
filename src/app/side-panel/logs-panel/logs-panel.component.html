@@ -1,0 +1,16 @@
+<div id="logs-panel">
+  <div id="logs-panel-header">
+    <h2>Déroulé de la partie</h2>
+  </div>
+  <div class="logs-panel-body">
+    @for (message of logService.messages; track message; let i = $index) {
+
+    <div class="logs-panel-message">
+      {{message}}
+    </div>
+    }
+  </div>
+  <div id="logs-panel-clear">
+    <button (click)="clear()">Clear</button>
+  </div>
+</div>

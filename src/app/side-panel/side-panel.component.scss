@@ -1,0 +1,10 @@
+.sidePanel {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  > app-logs-panel {
+    flex: 1;
+    max-height: 50%;
+  }
+}

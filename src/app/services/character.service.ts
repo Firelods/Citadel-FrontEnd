@@ -8,43 +8,60 @@ import { PlayerDTO } from '../interfaces/dtos/player-dto';
 import { PlayerCollectGoldDTO } from '../interfaces/dtos/player-collect-gold-dto';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class CharacterService {
-  socketService: SocketService = new SocketService();
-
-  constructor() {
-    this.subToAllCharacterEvents();
+  constructor(private socketService: SocketService) {
+    if (this.socketService.isConnected()) {
+      this.subToAllCharacterEvents();
+    }
+    this.socketService.reconnected$.subscribe(() => {
+      this.subToAllCharacterEvents();
+    });
   }
 
   subToAllCharacterEvents() {
-    this.socketService.listen('displayPlayerUseCondottiereDistrict').subscribe((data:CondottiereEffectDTO) => {
-      console.log('displayPlayerUseCondottiereDistrict :');
-      console.log(data);
-    });
-    this.socketService.listen('displayPlayerUseAssassinEffect').subscribe((data:MurdererEffectDTO) => {
-      console.log('displayPlayerUseAssassinEffect :');
-      console.log(data);
-    });
-    this.socketService.listen('displayUnusedCharacterInRound').subscribe((data:CharacterDTO) => {
-      console.log('displayUnusedCharacterInRound :');
-      console.log(data);
-    });
-    this.socketService.listen('displayStolenCharacter').subscribe((data:CharacterDTO) => {
-      console.log('displayStolenCharacter :');
-      console.log(data);
-    });
-    this.socketService.listen('displayPlayerUseMagicianEffect').subscribe((data:MagicianEffectDTO) => {
-      console.log('displayPlayerUseMagicianEffect :');
-      console.log(data);
-    });
-    this.socketService.listen('displayPlayerUseThiefEffect').subscribe((data:PlayerDTO) => {
-      console.log('displayPlayerUseThiefEffect :');
-      console.log(data);
-    });
-    this.socketService.listen('displayGoldCollectedFromDisctrictType').subscribe((data:PlayerCollectGoldDTO) => {
-      console.log('displayGoldCollectedFromDisctrictType :');
-      console.log(data);
-    });
+    this.socketService
+      .listen('displayPlayerUseCondottiereDistrict')
+      .subscribe((data: CondottiereEffectDTO) => {
+        console.log('displayPlayerUseCondottiereDistrict :');
+        console.log(data);
+      });
+    this.socketService
+      .listen('displayPlayerUseAssassinEffect')
+      .subscribe((data: MurdererEffectDTO) => {
+        console.log('displayPlayerUseAssassinEffect :');
+        console.log(data);
+      });
+    this.socketService
+      .listen('displayUnusedCharacterInRound')
+      .subscribe((data: CharacterDTO) => {
+        console.log('displayUnusedCharacterInRound :');
+        console.log(data);
+      });
+    this.socketService
+      .listen('displayStolenCharacter')
+      .subscribe((data: CharacterDTO) => {
+        console.log('displayStolenCharacter :');
+        console.log(data);
+      });
+    this.socketService
+      .listen('displayPlayerUseMagicianEffect')
+      .subscribe((data: MagicianEffectDTO) => {
+        console.log('displayPlayerUseMagicianEffect :');
+        console.log(data);
+      });
+    this.socketService
+      .listen('displayPlayerUseThiefEffect')
+      .subscribe((data: PlayerDTO) => {
+        console.log('displayPlayerUseThiefEffect :');
+        console.log(data);
+      });
+    this.socketService
+      .listen('displayGoldCollectedFromDisctrictType')
+      .subscribe((data: PlayerCollectGoldDTO) => {
+        console.log('displayGoldCollectedFromDisctrictType :');
+        console.log(data);
+      });
   }
 }

@@ -1,0 +1,64 @@
+#logs-panel {
+  height: 100%;
+  width: 100%;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  overflow: hidden;
+  background-color: rgb(9 44 76);
+  transition: all 0.5s ease-in-out;
+}
+
+#logs-panel-header {
+  padding: 10px 10px 10px 30px;
+  width: 100%;
+  color: white;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  background-color: rgb(30 144 255);
+  transition: all 0.5s ease-in-out;
+}
+.logs-panel-body {
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#logs-panel-clear {
+  height: 50px;
+  width: 100%;
+  color: white;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+  align-items: center;
+  background-color: rgb(30 144 255);
+  transition: all 0.5s ease-in-out;
+}
+
+.logs-panel-message {
+  background-color: dodgerblue;
+  padding: 10px;
+  color: white;
+  width: fit-content;
+  border-radius: 10px;
+  margin-bottom: 15px;
+  margin-left: 30px;
+}
+
+#logs-panel-clear > button {
+  height: 50px;
+  width: 100%;
+  color: white;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+  align-items: center;
+  background-color: rgb(30 144 255);
+  transition: all 0.5s ease-in-out;
+  cursor: pointer;
+}

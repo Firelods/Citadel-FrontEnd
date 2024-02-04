@@ -1,7 +1,7 @@
-import { BoardElement } from "./board-element";
+import { BoardElement } from './board-element';
 
-export interface District extends BoardElement{
+export interface District extends BoardElement {
   cost: number;
   disctrictType?: string;
-  name?: string;
+  name: string;
 }
