@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { Player } from '../../player';
+import { Player } from '../../interfaces/player';
 
 @Component({
   selector: 'app-player-info',
@@ -10,7 +10,6 @@ import { Player } from '../../player';
 })
 export class PlayerInfoComponent {
   currentPlayer: Player = {
-    name: 'Player 1',
     citadel: [
       { cost: 1, name: 'cimetiere' },
       { cost: 2, name: 'caserne' },

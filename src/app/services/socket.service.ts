@@ -6,21 +6,23 @@ import { Observable } from 'rxjs';
   providedIn: 'root',
 })
 export class SocketService {
-  private socket: Socket;
+  private socket?: Socket;
 
-  constructor() {
+  constructor() {}
+
+  connect(): void {
     this.socket = io('http://localhost:5001');
     this.subToAllEvents();
   }
 
   getSocket(): Socket {
-    return this.socket;
+    return this.socket!;
   }
 
   listen(eventName: string): Observable<any> {
     console.log('Socket service listening to ' + eventName);
     return new Observable((subscriber) => {
-      this.socket.on(eventName, (data) => {
+      this.socket!.on(eventName, (data) => {
         subscriber.next(data);
       });
     });

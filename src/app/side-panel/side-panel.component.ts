@@ -1,7 +1,6 @@
 import { Component } from '@angular/core';
 import { LogsPanelComponent } from './logs-panel/logs-panel.component';
-import { RouterModule, RouterOutlet } from '@angular/router';
-import { SidePanelRoutes } from './side-panel.routes';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-side-panel',
