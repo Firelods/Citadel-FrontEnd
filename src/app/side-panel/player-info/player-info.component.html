@@ -1,0 +1,20 @@
+<div class="playerInfos">
+  <h2>{{currentPlayer.name}}</h2>
+  <p>Main du joueur : </p>
+  <div class="hand">
+    @for (district of currentPlayer.hand; track $index) {
+    <div class="district">
+      <img src="../../../assets/citadelle/{{district.name}}.jpg" alt="{{district.name}}" />
+    </div>
+    }
+  </div>
+
+  <p>Citadelle du joueur : </p>
+  <div class="citadel">
+    @for (district of currentPlayer.citadel; track $index) {
+    <div class="district">
+      <img src="../../../assets/citadelle/{{district.name}}.jpg" alt="{{district.name}}" />
+    </div>
+    }
+  </div>
+</div>

@@ -5,4 +5,5 @@ export interface Player {
   name: string;
   citadel: District[];
   positionOnBoard?: THREE.Vector3;
+  hand?: District[];
 }

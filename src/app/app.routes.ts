@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { PlateauComponent } from './plateau/plateau.component';
-import { LogsPanelComponent } from './side-panel/logs-panel/logs-panel.component';
+import { SidePanelRoutes } from './side-panel/side-panel.routes';
+import { SidePanelComponent } from './side-panel/side-panel.component';
 
 export const routes: Routes = [
   {
@@ -11,9 +12,11 @@ export const routes: Routes = [
   {
     path: 'plateau',
     component: PlateauComponent,
+    children: SidePanelRoutes,
   },
   {
-    path: 'logs',
-    component: LogsPanelComponent,
+    path: 'side-panel',
+    component: SidePanelComponent,
+    children: SidePanelRoutes,
   },
 ];
