@@ -16,6 +16,7 @@ import { TextureLoader, SpriteMaterial, Sprite } from 'three';
 import { PlayerService } from '../services/player.service';
 import { GameService } from '../services/game.service';
 import { SidePanelComponent } from '../side-panel/side-panel.component';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-plateau',
@@ -39,14 +40,21 @@ export class PlateauComponent implements AfterViewInit {
   progress = 0; // Progression de l'animation de 0 (début) à 1 (fin)
 
   constructor(
-    playerService: PlayerService,
+    private playerService: PlayerService,
     characterService: CharacterService,
-    gameService: GameService
+    private gameService: GameService,
+    private router: Router
   ) {
     this.players = playerService.getPlayersAsList();
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    setTimeout(() => {
+      if (!this.gameService.gameAvailable()) {
+        this.router.navigate(['/home']);
+      }
+    }, 1000);
+  }
 
   ngAfterViewInit(): void {
     this.initTHREE();
@@ -166,7 +174,7 @@ export class PlateauComponent implements AfterViewInit {
       player.positionOnBoard = playerPosition;
       for (let i = 0; i < player.citadel.length; i++) {
         // Choix aléatoire de la géométrie
-        const sizeMultiplierByCost = (player.citadel[i].cost * 3) / 8; // Pour que les formes les plus chères soient plus grosses
+        const sizeMultiplierByCost = (player.citadel[i].district.cost * 3) / 8; // Pour que les formes les plus chères soient plus grosses
         let geometry = new THREE.BoxGeometry(
           0.2 * sizeMultiplierByCost,
           0.2 * sizeMultiplierByCost,
@@ -198,7 +206,7 @@ export class PlateauComponent implements AfterViewInit {
         }
         let districtPosition: THREE.Vector3 = new THREE.Vector3();
         district.getWorldPosition(districtPosition);
-        player.citadel[i].positionOnBoard = districtPosition;
+        player.citadel[i].district.positionOnBoard = districtPosition;
         playerGroup.add(district);
       }
 
@@ -258,6 +266,7 @@ export class PlateauComponent implements AfterViewInit {
       );
       if (villagePosition) {
         this.zoomOnVillage(villagePosition);
+        this.playerService.setFocusedPlayer(villagePosition);
       }
     }
   };

@@ -7,7 +7,7 @@ import { HomeComponent } from './home/home.component';
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: 'plateau',
+    redirectTo: 'home',
     pathMatch: 'full',
   },
   {

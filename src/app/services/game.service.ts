@@ -18,7 +18,23 @@ export class GameService {
     private socketService: SocketService,
     private logService: LogService
   ) {
-    this.subToAllGameEvents();
+    if (this.socketService.isConnected()) {
+      this.subToAllGameEvents();
+    }
+    this.socketService.reconnected$.subscribe(() => {
+      this.subToAllGameEvents();
+    });
+  }
+
+  gameAvailable(): boolean {
+    // try to reconnect to the socket
+    if (!this.socketService.isConnected()) this.socketService.connect();
+    console.log('gameAvailable :');
+    console.log(this.socketService.isConnected());
+
+    // if the socket is connected, the game is available
+
+    return this.socketService.isConnected();
   }
 
   subToAllGameEvents() {

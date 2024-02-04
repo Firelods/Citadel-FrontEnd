@@ -1,20 +1,40 @@
 <div class="playerInfos">
-  <h2>{{currentPlayer.id}}</h2>
-  <p>Main du joueur : </p>
+  @if (this.playerService.getFocusedPlayer(); as currentPlayer) {
+  <h2>Joueur {{currentPlayer.id}}</h2>
+  <h3>{{currentPlayer.character?.role}}</h3>
+  <h3>Gold : {{currentPlayer.nbGold}}</h3>
+  <p>Main du joueur ({{currentPlayer.hand?.length}}): </p>
   <div class="hand">
-    @for (district of currentPlayer.hand; track $index) {
+    @for (card of currentPlayer.hand; track card.district.name) {
+    @if (card.district; as district) {
     <div class="district">
-      <img src="../../../assets/citadelle/{{district.name}}.jpg" alt="{{district.name}}" />
+      <p>{{district.name}}</p>
+      <img src="../../../assets/citadelle/{{district.name | normalize}}.jpg" alt="{{district.name}}" />
     </div>
+    }
+    }
+    @empty {
+    <p>La main est vide</p>
     }
   </div>
 
-  <p>Citadelle du joueur : </p>
+  <p>Citadelle du joueur ({{currentPlayer.citadel.length}}) : </p>
   <div class="citadel">
-    @for (district of currentPlayer.citadel; track $index) {
+    @for (card of currentPlayer.citadel; track card.district.name) {
+    @if (card.district; as district) {
     <div class="district">
-      <img src="../../../assets/citadelle/{{district.name}}.jpg" alt="{{district.name}}" />
+      <p>{{district.name}}</p>
+      <img src="../../../assets/citadelle/{{district.name | normalize}}.jpg" alt="{{district.name}}" />
     </div>
     }
+    }
+    @empty {
+    <p>La main est vide</p>
+    }
   </div>
+  }
+  @else {
+  <h2>Choisissez un joueur</h2>
+  }
+  <button (click)="printInfo()">Log info player</button>
 </div>

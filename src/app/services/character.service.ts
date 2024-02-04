@@ -12,7 +12,12 @@ import { PlayerCollectGoldDTO } from '../interfaces/dtos/player-collect-gold-dto
 })
 export class CharacterService {
   constructor(private socketService: SocketService) {
-    this.subToAllCharacterEvents();
+    if (this.socketService.isConnected()) {
+      this.subToAllCharacterEvents();
+    }
+    this.socketService.reconnected$.subscribe(() => {
+      this.subToAllCharacterEvents();
+    });
   }
 
   subToAllCharacterEvents() {

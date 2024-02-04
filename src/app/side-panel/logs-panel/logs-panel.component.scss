@@ -21,6 +21,12 @@
   background-color: rgb(30 144 255);
   transition: all 0.5s ease-in-out;
 }
+.logs-panel-body {
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 
 #logs-panel-clear {
   height: 50px;
@@ -34,7 +40,7 @@
   transition: all 0.5s ease-in-out;
 }
 
-.logs-panel-message-left {
+.logs-panel-message {
   background-color: dodgerblue;
   padding: 10px;
   color: white;
@@ -42,17 +48,6 @@
   border-radius: 10px;
   margin-bottom: 15px;
   margin-left: 30px;
-}
-
-.logs-panel-message-right {
-  background-color: white;
-  padding: 10px;
-  color: black;
-  width: fit-content;
-  border-radius: 10px;
-  margin-bottom: 15px;
-  margin-left: auto;
-  margin-right: 30px;
 }
 
 #logs-panel-clear > button {

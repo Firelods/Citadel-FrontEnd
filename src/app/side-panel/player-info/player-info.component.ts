@@ -1,25 +1,22 @@
 import { Component } from '@angular/core';
 import { Player } from '../../interfaces/player';
+import { PlayerService } from '../../services/player.service';
+import { District } from '../../interfaces/district';
+import { NormalizePipe } from './normalize.pipe';
 
 @Component({
   selector: 'app-player-info',
   standalone: true,
-  imports: [],
+  imports: [NormalizePipe],
   templateUrl: './player-info.component.html',
   styleUrl: './player-info.component.scss',
 })
 export class PlayerInfoComponent {
-  currentPlayer: Player = {
-    citadel: [
-      { cost: 1, name: 'cimetiere' },
-      { cost: 2, name: 'caserne' },
-      { cost: 3 },
-      { cost: 4 },
-      { cost: 5 },
-      { cost: 6 },
-      { cost: 7 },
-      { cost: 8 },
-    ],
-    id: 'player1',
-  };
+  constructor(public playerService: PlayerService) {}
+
+  printInfo() {
+    this.playerService.getFocusedPlayer()!.hand!.forEach((card) => {
+      console.log(card);
+    });
+  }
 }

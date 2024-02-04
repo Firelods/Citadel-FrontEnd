@@ -14,61 +14,53 @@ import { LogService } from './log.service';
   providedIn: 'root',
 })
 export class PlayerService {
-  private playersByIdMap: Map<string, Player> = new Map<string, Player>();
+  private playersByIdMap: Map<number, Player> = new Map<number, Player>();
+  private focusedPlayer?: number;
   constructor(
     private socketService: SocketService,
     private logService: LogService
   ) {
-    this.subToAllPlayerEvents();
-    this.playersByIdMap.set('1', {
-      id: '1',
+    if (this.socketService.isConnected()) {
+      this.subToAllPlayerEvents();
+    }
+    this.socketService.reconnected$.subscribe(() => {
+      this.subToAllPlayerEvents();
+    });
+    this.playersByIdMap.set(1, {
+      id: 1,
       citadel: [
-        { cost: 1 },
-        { cost: 2 },
-        { cost: 3 },
-        { cost: 4 },
-        { cost: 5 },
-        { cost: 6 },
-        { cost: 7 },
-        { cost: 8 },
+        { district: { cost: 1, name: 'Bazar' } },
+        { district: { cost: 2, name: 'Taverne' } },
+        { district: { cost: 8, name: 'Château' } },
       ],
     });
-    this.playersByIdMap.set('2', {
-      id: '2',
+    this.playersByIdMap.set(2, {
+      id: 2,
       citadel: [
-        { cost: 1 },
-        { cost: 2 },
-        { cost: 3 },
-        { cost: 4 },
-        { cost: 5 },
-        { cost: 6 },
+        { district: { cost: 1, name: 'Bazar' } },
+        { district: { cost: 2, name: 'Taverne' } },
+        { district: { cost: 3, name: 'Cimetière' } },
+        { district: { cost: 4, name: 'Manoir' } },
+        { district: { cost: 5, name: 'Château' } },
       ],
     });
-    this.playersByIdMap.set('3', {
-      id: '3',
+    this.playersByIdMap.set(3, {
+      id: 3,
       citadel: [
-        { cost: 1 },
-        { cost: 2 },
-        { cost: 3 },
-        { cost: 4 },
-        { cost: 5 },
-        { cost: 6 },
+        { district: { cost: 1, name: 'Bazar' } },
+        { district: { cost: 2, name: 'Bazar' } },
+        { district: { cost: 3, name: 'Bazar' } },
+        { district: { cost: 4, name: 'Bazar' } },
+        { district: { cost: 5, name: 'Bazar' } },
+        { district: { cost: 6, name: 'Bazar' } },
       ],
     });
-    this.playersByIdMap.set('4', {
-      id: '4',
-      citadel: [{ cost: 1 }, { cost: 2 }, { cost: 3 }],
-    });
-    this.playersByIdMap.set('5', { id: '5', citadel: [{ cost: 1 }] });
-    this.playersByIdMap.set('6', {
-      id: '6',
+    this.playersByIdMap.set(4, {
+      id: 4,
       citadel: [
-        { cost: 1 },
-        { cost: 2 },
-        { cost: 3 },
-        { cost: 4 },
-        { cost: 5 },
-        { cost: 6 },
+        { district: { cost: 1, name: 'Bazar' } },
+        { district: { cost: 2, name: 'Bazar' } },
+        { district: { cost: 3, name: 'Bazar' } },
       ],
     });
   }
@@ -227,6 +219,13 @@ export class PlayerService {
   }
 
   udpatePlayer(player: Player) {
+    let positionOnBoardOfPlayerToUdpate = this.playersByIdMap.get(
+      player.id
+    )?.positionOnBoard;
+    if (!positionOnBoardOfPlayerToUdpate) {
+      throw new Error('Player position on board is not defined');
+    }
+    player.positionOnBoard = positionOnBoardOfPlayerToUdpate;
     this.playersByIdMap.set(player.id, player);
   }
 
@@ -235,5 +234,18 @@ export class PlayerService {
     this.logService.add(
       'Le joueur ' + player.id + ' a joué la carte ' + card.district.cost
     );
+  }
+
+  getFocusedPlayer(): Player | undefined {
+    return this.playersByIdMap.get(this.focusedPlayer!);
+  }
+
+  setFocusedPlayer(playerPosition: THREE.Vector3) {
+    this.focusedPlayer = this.getPlayersAsList().find(
+      (player) =>
+        playerPosition.x === player.positionOnBoard?.x &&
+        playerPosition.y === player.positionOnBoard?.y &&
+        playerPosition.z === player.positionOnBoard?.z
+    )!.id;
   }
 }
