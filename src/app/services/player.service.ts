@@ -9,6 +9,7 @@ import { PlayerGetBonusDTO } from '../interfaces/dtos/player-get-bonus-dto';
 import { PlayerAndMessageDTO } from '../interfaces/dtos/player-and-message-dto';
 import { Card } from '../interfaces/card';
 import { LogService } from './log.service';
+import { BehaviorSubject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -16,6 +17,10 @@ import { LogService } from './log.service';
 export class PlayerService {
   private playersByIdMap: Map<number, Player> = new Map<number, Player>();
   private focusedPlayer?: number;
+  private districtsUpdateRequired = new BehaviorSubject<boolean>(false);
+  // Exposez un Observable pour permettre aux autres services de s'abonner
+  public districtsUpdateRequired$ = this.districtsUpdateRequired.asObservable();
+
   constructor(
     private socketService: SocketService,
     private logService: LogService
@@ -28,45 +33,29 @@ export class PlayerService {
     });
     this.playersByIdMap.set(1, {
       id: 1,
-      citadel: [
-        { district: { cost: 1, name: 'Bazar' } },
-        { district: { cost: 2, name: 'Taverne' } },
-        { district: { cost: 8, name: 'Château' } },
-      ],
+      citadel: [],
     });
     this.playersByIdMap.set(2, {
       id: 2,
-      citadel: [
-        { district: { cost: 1, name: 'Bazar' } },
-        { district: { cost: 2, name: 'Taverne' } },
-        { district: { cost: 3, name: 'Cimetière' } },
-        { district: { cost: 4, name: 'Manoir' } },
-        { district: { cost: 5, name: 'Château' } },
-      ],
+      citadel: [],
     });
     this.playersByIdMap.set(3, {
       id: 3,
-      citadel: [
-        { district: { cost: 1, name: 'Bazar' } },
-        { district: { cost: 2, name: 'Bazar' } },
-        { district: { cost: 3, name: 'Bazar' } },
-        { district: { cost: 4, name: 'Bazar' } },
-        { district: { cost: 5, name: 'Bazar' } },
-        { district: { cost: 6, name: 'Bazar' } },
-      ],
+      citadel: [],
     });
     this.playersByIdMap.set(4, {
       id: 4,
-      citadel: [
-        { district: { cost: 1, name: 'Bazar' } },
-        { district: { cost: 2, name: 'Bazar' } },
-        { district: { cost: 3, name: 'Bazar' } },
-      ],
+      citadel: [],
     });
   }
 
   getPlayersAsList(): Player[] {
     return Array.from(this.playersByIdMap.values());
+  }
+
+  // Méthode pour déclencher la mise à jour
+  public requireDistrictsUpdate() {
+    this.districtsUpdateRequired.next(true);
   }
 
   subToAllPlayerEvents() {
@@ -141,6 +130,7 @@ export class PlayerService {
       .listen('displayPlayerInfo')
       .subscribe((data: PlayerDTO) => {
         this.udpatePlayer(data.player);
+        this.requireDistrictsUpdate();
       });
     this.socketService
       .listen('displayPlayerError')
@@ -219,13 +209,17 @@ export class PlayerService {
   }
 
   udpatePlayer(player: Player) {
-    let positionOnBoardOfPlayerToUdpate = this.playersByIdMap.get(
+    let positionOnBoardOfPlayerToUpdate = this.playersByIdMap.get(
       player.id
     )?.positionOnBoard;
-    if (!positionOnBoardOfPlayerToUdpate) {
+    let playerCitadelOnBoardOfPlayerToUpdate = this.playersByIdMap.get(
+      player.id
+    )?.citadelOnBoard;
+    if (!positionOnBoardOfPlayerToUpdate) {
       throw new Error('Player position on board is not defined');
     }
-    player.positionOnBoard = positionOnBoardOfPlayerToUdpate;
+    player.positionOnBoard = positionOnBoardOfPlayerToUpdate;
+    player.citadelOnBoard = playerCitadelOnBoardOfPlayerToUpdate;
     this.playersByIdMap.set(player.id, player);
   }
 
