@@ -1,3 +1,5 @@
+import { CharacterService } from './../services/character.service';
+import { Character } from './../interfaces/character';
 import {
   AfterViewInit,
   Component,
@@ -7,11 +9,12 @@ import {
 } from '@angular/core';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { Player } from '../player';
+import { Player } from '../interfaces/player';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader';
 import { TextureLoader, SpriteMaterial, Sprite } from 'three';
-import { PlayerService } from '../player.service';
+import { PlayerService } from '../services/player.service';
+import { GameService } from '../services/game.service';
 
 @Component({
   selector: 'app-plateau',
@@ -35,8 +38,8 @@ export class PlateauComponent implements AfterViewInit {
   targetPosition = new THREE.Vector3();
   progress = 0; // Progression de l'animation de 0 (début) à 1 (fin)
 
-  constructor(playerService: PlayerService) {
-    this.players = playerService.players;
+  constructor(playerService: PlayerService, characterService: CharacterService, gameService: GameService) {
+    this.players = playerService.getPlayersAsList();
   }
 
   ngOnInit(): void {}
@@ -191,7 +194,7 @@ export class PlateauComponent implements AfterViewInit {
         }
         let districtPosition: THREE.Vector3 = new THREE.Vector3();
         district.getWorldPosition(districtPosition);
-        player.citadel[i].placeOnBoard = districtPosition;
+        player.citadel[i].positionOnBoard = districtPosition;
         playerGroup.add(district);
       }
 
