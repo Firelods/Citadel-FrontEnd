@@ -22,7 +22,6 @@ import { Router } from '@angular/router';
 })
 export class PlateauComponent implements AfterViewInit {
   @ViewChild('container') private containerRef!: ElementRef;
-  players: Player[];
   threeService: ThreeService;
 
   constructor(
@@ -32,7 +31,6 @@ export class PlateauComponent implements AfterViewInit {
     private router: Router,
     threeService: ThreeService
   ) {
-    this.players = playerService.getPlayersAsList();
     this.threeService = threeService;
   }
 
@@ -45,6 +43,6 @@ export class PlateauComponent implements AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.threeService.init(this.players, this.containerRef);
+    this.threeService.init(this.containerRef);
   }
 }

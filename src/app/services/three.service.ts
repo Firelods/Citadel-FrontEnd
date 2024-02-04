@@ -33,13 +33,16 @@ export class ThreeService {
     this.playerService = playerService;
   }
 
-  public init(players: Player[], container: ElementRef): void {
+  public init(container: ElementRef): void {
     this.initTHREE(container);
     this.createDistricts();
     this.animate();
     this.createQuestionMarks();
     window.addEventListener('click', this.onMouseClick);
     window.addEventListener('mousemove', this.onHover);
+    this.playerService.districtsUpdateRequired$.subscribe(() => {
+      this.createDistricts();
+    });
   }
 
   initTHREE(container: ElementRef): void {
@@ -130,8 +133,7 @@ export class ThreeService {
 
   createDistricts(): void {
     const colors = [0xff0000, 0x00ff00, 0x0000ff, 0xffff00]; // Couleurs pour chaque joueur
-    const textureLoader = new THREE.TextureLoader();
-    const texture = textureLoader.load('../../assets/texture.png'); // Chemin de votre texture
+    const texture = this.textureLoader.load('../../assets/texture.png'); // Chemin de votre texture
 
     const gridSpacing = 0.5; // Espacement entre les carrés
     const gridSize = 3; // Taille de la grille (ex: 10x10)
@@ -139,68 +141,86 @@ export class ThreeService {
     let players = this.playerService.getPlayersAsList();
 
     players.forEach((player, playerIndex) => {
-      const playerGroup = new THREE.Group();
-      const grid = new Array(gridSize)
-        .fill(null)
-        .map(() => new Array(gridSize).fill(false));
-
-      // Positionner le groupe de chaque joueur
-      const groupAngle = (playerIndex / players.length) * Math.PI * 2;
-      const groupRadius = 7; // Rayon pour la disposition des groupes de joueurs
-      playerGroup.position.x = Math.cos(groupAngle) * groupRadius;
-      playerGroup.position.z = Math.sin(groupAngle) * groupRadius;
-      let playerPosition: THREE.Vector3 = new THREE.Vector3();
-      playerGroup.getWorldPosition(playerPosition);
-      player.positionOnBoard = playerPosition;
-      for (let i = 0; i < player.citadel.length; i++) {
-        // Choix aléatoire de la géométrie
-        const sizeMultiplierByCost = (player.citadel[i].district.cost * 3) / 8; // Pour que les formes les plus chères soient plus grosses
-        let geometry = new THREE.BoxGeometry(
-          0.2 * sizeMultiplierByCost,
-          0.2 * sizeMultiplierByCost,
-          0.2 * sizeMultiplierByCost
-        );
-
-        const material = new THREE.MeshBasicMaterial({
-          color: colors[playerIndex % colors.length],
-          map: texture,
-        });
-
-        const district = new THREE.Mesh(geometry, material);
-
-        let placed = false;
-        while (!placed) {
-          const xGrid = Math.floor(Math.random() * gridSize);
-          const zGrid = Math.floor(Math.random() * gridSize);
-
-          if (!grid[xGrid][zGrid]) {
-            district.position.x =
-              xGrid * gridSpacing - (gridSize * gridSpacing) / 2;
-            district.position.z =
-              zGrid * gridSpacing - (gridSize * gridSpacing) / 2;
-            district.position.y = geometry!.parameters.height / 2;
-
-            grid[xGrid][zGrid] = true;
-            placed = true;
-          }
-        }
-        let districtPosition: THREE.Vector3 = new THREE.Vector3();
-        district.getWorldPosition(districtPosition);
-        player.citadel[i].district.positionOnBoard = districtPosition;
-        playerGroup.add(district);
+      let playerGroup: THREE.Group;
+      playerGroup = player.citadelOnBoard!;
+      if (!playerGroup) {
+        playerGroup = new THREE.Group();
+        player.citadelOnBoard = playerGroup;
+        // Positionner le groupe de chaque joueur
+        const groupAngle = (playerIndex / players.length) * Math.PI * 2;
+        const groupRadius = 7; // Rayon pour la disposition des groupes de joueurs
+        playerGroup.position.x = Math.cos(groupAngle) * groupRadius;
+        playerGroup.position.z = Math.sin(groupAngle) * groupRadius;
+        let playerPosition: THREE.Vector3 = new THREE.Vector3();
+        playerGroup.getWorldPosition(playerPosition);
+        player.positionOnBoard = playerPosition;
+        this.scene.add(playerGroup);
+        player.citadelOnBoard = playerGroup;
       }
+      if (!player.citadelGrid) {
+        const grid = new Array(gridSize)
+          .fill(null)
+          .map(() => new Array(gridSize).fill(false));
+        player.citadelGrid = grid;
+      }
+      const existingDistricts = new Map();
+      playerGroup.children.forEach((child) => {
+        existingDistricts.set(child.userData['uuid'], child);
+      });
 
-      this.scene.add(playerGroup);
+      player.citadel.forEach((card) => {
+        if (existingDistricts.has(player.id + ' ' + card.district.name)) {
+          // Le district existe déjà, le laisser tel quel
+          existingDistricts.delete(player.id + ' ' + card.district.name); // Retirer de la liste des districts à supprimer
+        } else {
+          const sizeMultiplierByCost = (card.district.cost * 3) / 8; // Pour que les formes les plus chères soient plus grosses
+          let geometry = new THREE.BoxGeometry(
+            0.2 * sizeMultiplierByCost,
+            0.2 * sizeMultiplierByCost,
+            0.2 * sizeMultiplierByCost
+          );
+
+          const material = new THREE.MeshBasicMaterial({
+            color: colors[playerIndex % colors.length],
+            map: texture,
+          });
+
+          const district = new THREE.Mesh(geometry, material);
+
+          let placed = false;
+          while (!placed) {
+            const xGrid = Math.floor(Math.random() * gridSize);
+            const zGrid = Math.floor(Math.random() * gridSize);
+
+            if (!player.citadelGrid![xGrid][zGrid]) {
+              district.position.x =
+                xGrid * gridSpacing - (gridSize * gridSpacing) / 2;
+              district.position.z =
+                zGrid * gridSpacing - (gridSize * gridSpacing) / 2;
+              district.position.y = geometry!.parameters.height / 2;
+
+              player.citadelGrid![xGrid][zGrid] = true;
+              placed = true;
+            }
+          }
+          let districtPosition: THREE.Vector3 = new THREE.Vector3();
+          district.getWorldPosition(districtPosition);
+          card.district.positionOnBoard = districtPosition;
+          district.userData['uuid'] = player.id + ' ' + card.district.name;
+          playerGroup.add(district);
+        }
+      });
+      existingDistricts.forEach((district) => {
+        playerGroup.remove(district);
+        district.geometry.dispose();
+      });
     });
-    console.log(players);
   }
 
   createQuestionMarks(): void {
     const questionTexture = this.textureLoader.load(
       '../../assets/interrog.png'
     );
-    console.log(questionTexture);
-
     let players = this.playerService.getPlayersAsList();
 
     players.forEach((player, playerIndex) => {
